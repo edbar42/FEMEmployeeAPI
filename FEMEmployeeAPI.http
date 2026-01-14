@@ -1,0 +1,6 @@
+@FEMEmployeeAPI_HostAddress = http://localhost:5290
+
+GET {{FEMEmployeeAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
