@@ -1,14 +1,49 @@
-﻿using Microsoft.AspNetCore.Mvc.Testing;
+﻿using System.Net;
+using System.Net.Http.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace FEMEmployeeAPI.Tests;
 
-public class BasicTests : IClassFixture<WebApplicationFactory<Program>>
+public class BasicTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
-  private readonly WebApplicationFactory<Program> _factory;
+  private readonly WebApplicationFactory<Program> _factory = factory;
 
-  public BasicTests(WebApplicationFactory<Program> factory)
+  [Fact]
+  public async Task GetAllEmployees_ReturnsOkResult()
   {
-    _factory = factory;
+    HttpClient client = _factory.CreateClient();
+    var response = await client.GetAsync("/employees");
+
+    response.EnsureSuccessStatusCode();
   }
+
+  [Fact]
+  public async Task GetEmployeeById_ReturnsOkResult()
+  {
+    var client = _factory.CreateClient();
+    var response = await client.GetAsync("/employees/1");
+
+    response.EnsureSuccessStatusCode();
+  }
+
+  [Fact]
+  public async Task CreateEmployee_ReturnsCreatedResult()
+  {
+    var client = _factory.CreateClient();
+    var response = await client.PostAsJsonAsync("/employees", new Employee { FirstName = "John", LastName = "Doe" });
+
+    response.EnsureSuccessStatusCode();
+  }
+
+  [Fact]
+  public async Task CreateEmployee_ReturnsBadRequestResult()
+  {
+    var client = _factory.CreateClient();
+    var response = await client.PostAsJsonAsync("/employees", new { });
+
+    Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+  }
+
+
 }
 

@@ -1,6 +1,6 @@
 <Solution>
   <Folder Name="/api/">
-    <Project Path="api/FEMEmployeeAPI.csproj" />
+    <Project Path="FEMEmployeeAPI/FEMEmployeeAPI.csproj" />
   </Folder>
-  <Project Path="tests/tests.csproj" />
+  <Project Path="FEMEmployeeAPI.Tests/FEMEmployeeAPI.Tests.csproj" />
 </Solution>
