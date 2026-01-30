@@ -1,13 +1,11 @@
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 using FEMEmployeeAPI;
-using Microsoft.AspNetCore.Mvc;
 using FEMEmployeeAPI.Employees;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<EmployeeRepository>();
 
 var app = builder.Build();
 
@@ -20,28 +18,11 @@ if (app.Environment.IsDevelopment())
   app.UseSwaggerUI();
 }
 
-var employees = new List<Employee>
-{
-    new() {
-        Id = 1,
-        FirstName = "John",
-        LastName = "Nightreign",
-        SocialSecurityNumber = "123-45-3445"
-    },
-    new()
-    {
-        Id = 2,
-        FirstName = "Jack",
-        LastName = "Harlow",
-        SocialSecurityNumber = "123-45-3446"
-    },
-};
-
 app.UseHttpsRedirection();
 
-employeeRoute.MapGet(string.Empty, () =>
+employeeRoute.MapGet(string.Empty, (EmployeeRepository repo) =>
 {
-  return Results.Ok(employees.Select(employee => new GetEmployeeResponse
+  return Results.Ok(repo.GetAll().Select(employee => new GetEmployeeResponse
   {
     FirstName = employee.FirstName,
     LastName = employee.LastName,
@@ -58,9 +39,9 @@ employeeRoute.MapGet(string.Empty, () =>
 
 employeeRoute.MapGet(
     "/{id:int}",
-    (int id) =>
+    (int id, EmployeeRepository repo) =>
     {
-      var employee = employees.SingleOrDefault(e => e.Id == id);
+      var employee = repo.GetById(id);
       if (employee == null)
       {
         return Results.NotFound();
@@ -81,11 +62,10 @@ employeeRoute.MapGet(
     }
 );
 
-employeeRoute.MapPost(string.Empty, (CreateEmployeeRequest employee) =>
+employeeRoute.MapPost(string.Empty, (CreateEmployeeRequest employee, EmployeeRepository repo) =>
 {
   var newEmployee = new Employee
   {
-    Id = employees.Max(e => e.Id) + 1,
     FirstName = employee.FirstName,
     LastName = employee.LastName,
     SocialSecurityNumber = employee.SocialSecurityNumber,
@@ -97,13 +77,13 @@ employeeRoute.MapPost(string.Empty, (CreateEmployeeRequest employee) =>
     PhoneNumber = employee.PhoneNumber,
     Email = employee.Email
   };
-  employees.Add(newEmployee);
+  repo.Create(newEmployee);
   return Results.Created($"/employees/{newEmployee.Id}", employee);
 });
 
-employeeRoute.MapPut("{id}", (UpdateEmployeeRequest employee, int id) =>
+employeeRoute.MapPut("{id}", (UpdateEmployeeRequest employee, int id, EmployeeRepository repo) =>
 {
-  var existingEmployee = employees.SingleOrDefault(e => e.Id == id);
+  var existingEmployee = repo.GetById(id);
   if (existingEmployee == null)
   {
     return Results.NotFound();
@@ -117,9 +97,8 @@ employeeRoute.MapPut("{id}", (UpdateEmployeeRequest employee, int id) =>
   existingEmployee.PhoneNumber = employee.PhoneNumber;
   existingEmployee.Email = employee.Email;
 
+  repo.Update(existingEmployee);
   return Results.Ok(existingEmployee);
 });
 
 app.Run();
-
-public partial class Program { }
