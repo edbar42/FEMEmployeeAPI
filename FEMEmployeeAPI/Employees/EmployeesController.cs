@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace FEMEmployeeAPI.Employees
 {
-  public class EmployeesController(IRepository<Employee> repository, ILogger<BaseController> logger) : BaseController
+  public class EmployeesController(IRepository<Employee> repository, ILogger<EmployeesController> logger) : BaseController
   {
     private readonly IRepository<Employee> _repository = repository;
     private readonly ILogger<EmployeesController> _logger = logger;
@@ -59,12 +59,7 @@ namespace FEMEmployeeAPI.Employees
     [HttpPost]
     public async Task<IActionResult> CreateEmployee([FromBody] CreateEmployeeRequest employeeRequest)
     {
-      var validationResults = await ValidateAsync(employeeRequest);
-      if (!validationResults.IsValid)
-      {
-        return BadRequest(validationResults.ToModelStateDictionary());
-      }
-
+      await Task.CompletedTask;
       var newEmployee = new Employee
       {
         FirstName = employeeRequest.FirstName!,
